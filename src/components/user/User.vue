@@ -28,7 +28,7 @@
           </el-input>
         </el-col>
         <el-col :span="6">
-          <el-button type="primary" size="small" @click="addUserForm"
+          <el-button type="primary" size="small" @click="addUserShow = true"
             >添加用户</el-button
           >
         </el-col>
@@ -54,18 +54,21 @@
         </el-table-column>
         <el-table-column label="操作" width="180px">
           <template slot-scope="scope">
+            <!-- 修改按钮 -->
             <el-button
               type="primary"
               size="mini"
               icon="el-icon-edit"
-              @click="upData(scope.row)"
+              @click="upData(scope.row.id)"
             ></el-button>
+            <!-- 删除按钮 -->
             <el-button
               type="danger"
               size="mini"
               icon="el-icon-delete"
               @click="del(scope.row)"
             ></el-button>
+            <!-- 权限分配按钮 -->
             <el-tooltip content="分配角色" placement="top">
               <el-button
                 type="warning"
@@ -90,7 +93,7 @@
       </el-pagination>
     </el-card>
 
-    <!-- 添加用户列表 -->
+    <!-- 添加用户表单 -->
     <el-dialog
       title="添加用户"
       :visible.sync="addUserShow"
@@ -125,6 +128,42 @@
         <el-button type="primary" @click="addUser()">确 定</el-button>
       </span>
     </el-dialog>
+
+    <!-- 修改用户表单 -->
+    <el-dialog
+      title="添加用户"
+      :visible.sync="updataShow"
+      width="50%"
+      @close="updataUserClose"
+      center
+    >
+      <el-form
+        :model="addFrom"
+        :rules="addRules"
+        ref="updataForm"
+        label-width="70px"
+      >
+        <el-form-item label="用户名" prop="username">
+          <el-input
+            v-model="addFrom.username"
+            :disabled="updataChange"
+          ></el-input>
+        </el-form-item>
+        <el-form-item label="密码" prop="password">
+          <el-input v-model="addFrom.password"></el-input>
+        </el-form-item>
+        <el-form-item label="邮箱" prop="email">
+          <el-input v-model="addFrom.email"></el-input>
+        </el-form-item>
+        <el-form-item label="手机号" prop="mobile">
+          <el-input v-model="addFrom.mobile"></el-input>
+        </el-form-item>
+      </el-form>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="updataShow = false">取 消</el-button>
+        <el-button type="primary" @click="updataUser">确 定</el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 
@@ -155,8 +194,6 @@ export default {
     }
     return {
       total: 0,
-      // 判断是修改还是添加
-      type: '',
       updataChange: false,
       // 获取用户列表的参数对象
       querInfo: {
@@ -171,6 +208,8 @@ export default {
       tableData: [],
       // 控制添加表单的显示和隐藏
       addUserShow: false,
+      // 修改表单的显示隐藏
+      updataShow: false,
       // 添加用户的数据对象
       addFrom: {
         username: '',
@@ -178,8 +217,6 @@ export default {
         email: '',
         mobile: ''
       },
-      // 修改数据对象
-      undataUser: {},
       // 表单验证规则
       addRules: {
         // 验证用户名是否合法
@@ -251,13 +288,18 @@ export default {
       this.querInfo.pagenum = newPage
       this.getTableData()
     },
-    // 添加按钮
-    addUserForm() {
-      this.addUserShow = true
-      this.type = 'add'
-    },
     // 删除管理员
     async del(val) {
+      const confirmResult = await this.$confirm(
+        '是否确认删除该用户 ?',
+        '提示',
+        {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }
+      ).catch(err => err)
+      if (confirmResult !== 'confirm') return this.$message.error('已取消删除')
       const { data: res } = await this.$http.delete('users/' + val.id)
       if (res.meta.status !== 200) return this.$message.error(res.meta.msg)
       this.$message.success(res.meta.msg)
@@ -267,59 +309,52 @@ export default {
     },
     // 监听添加列表关闭后清除提示警告
     addUserClose() {
-      this.updataChange = false
-      this.addForm.username = ''
-      this.addForm.password = ''
-      this.addForm.email = ''
-      this.addForm.mobile = ''
       this.$refs.addForm.resetFields()
+      this.$refs.updataForm.resetFields()
+    },
+    // 修改事件监听
+    updataUserClose() {
+      this.$refs.updataForm.resetFields()
     },
     // 添加用户列表数据
     addUser(val) {
-      if (this.type === 'add') {
-        // 先验证表单数据格式是否正确，正确返回true 错误false
-        this.$refs.addForm.validate(async vaild => {
-          if (!vaild) return
-          const { data: res } = await this.$http.post('users', this.addFrom)
-          if (res.meta.status !== 201) return this.$message.error(res.meta.msg)
-          this.$message.success('添加用户成功')
-          // 将添加表单隐藏
-          this.addUserShow = false
-          // 刷新列表，重新渲染
-          this.getTableData()
-        })
-      } else if (this.type === 'updata') {
-        console.log('ok')
-        this.$refs.addForm.validate(async vaild => {
-          if (!vaild) return
-          const { data: res } = await this.$http.put(
-            `users/${this.undataUser.id}`,
-            {
-              email: this.addFrom.email,
-              mobile: this.addFrom.mobile
-            }
-          )
-          console.log(res)
-          if (res.meta.status !== 200) return this.$message.error(res.meta.msg)
-          this.$message.success('修改用户数据成功')
-          // 将添加表单隐藏
-          this.addUserShow = false
-          // 用户名恢复能选中
-          this.updataChange = false
-          // 刷新列表，重新渲染
-          this.getTableData()
-        })
-      }
+      // 先验证表单数据格式是否正确，正确返回true 错误false
+      this.$refs.addForm.validate(async vaild => {
+        if (!vaild) return
+        const { data: res } = await this.$http.post('users', this.addFrom)
+        if (res.meta.status !== 201) return this.$message.error(res.meta.msg)
+        this.$message.success('添加用户成功')
+        // 将添加表单隐藏
+        this.addUserShow = false
+        // 刷新列表，重新渲染
+        this.getTableData()
+      })
     },
     // 修改数据
-    upData(val) {
-      this.addUserShow = true
-      this.addFrom.username = val.username
-      this.addFrom.email = val.email
-      this.addFrom.mobile = val.mobile
-      this.type = 'updata'
-      this.undataUser = val
+    async upData(id) {
+      const { data: res } = await this.$http.get('users/' + id)
+      if (res.meta.status !== 200) return this.$message.error(res.meta.msg)
+      this.updataShow = true
       this.updataChange = true
+      this.addFrom = res.data
+    },
+    // 提交修改用户数据
+    updataUser() {
+      this.$refs.updataForm.validate(async val => {
+        if (!val) return this.$message.error('数据错误,请重新填写')
+        // 发起数据修改提交命令
+        const { data: res } = await this.$http.put('users/' + this.addFrom.id, {
+          email: this.addFrom.email,
+          mobile: this.addFrom.mobile
+        })
+        if (res.meta.status !== 200) return this.$message.error(res.meta.msg)
+        // 关闭对话框
+        this.updataShow = false
+        // 刷新列表，重新渲染
+        this.getTableData()
+        // 提示修改成功
+        this.$message.success('更新成功！')
+      })
     }
   }
 }
