@@ -31,7 +31,9 @@
         </el-form-item>
         <el-form-item class="btns">
           <el-button type="primary" size="mini" @click="login">登录</el-button>
-          <el-button type="info" size="mini" @click="resetLoginFrom">重置</el-button>
+          <el-button type="info" size="mini" @click="resetLoginFrom"
+            >重置</el-button
+          >
         </el-form-item>
       </el-form>
     </div>
@@ -71,7 +73,6 @@ export default {
         if (!valid) return
         // 获取登录后返回数据
         const { data: res } = await this.$http.post('login', this.loginForm)
-        console.log(res)
         if (res.meta.status !== 200) this.Message.error('登录失败')
         this.$message.success('登录成功')
 

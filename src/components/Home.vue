@@ -61,7 +61,7 @@
       </el-aside>
       <!-- 右主体区域 -->
       <el-main>
-            <router-view></router-view>
+        <router-view></router-view>
       </el-main>
     </el-container>
   </el-container>
@@ -87,6 +87,7 @@ export default {
     //   销毁 token 退出登录
     loginOut() {
       window.sessionStorage.removeItem('token')
+      window.sessionStorage.removeItem('activePath')
       this.$router.push('/login')
     },
     // 获取左侧边栏数据

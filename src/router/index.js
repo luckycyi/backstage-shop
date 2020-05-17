@@ -4,6 +4,11 @@ import Login from '../components/Login.vue'
 import Home from '../components/Home.vue'
 import User from '../components/user/User.vue'
 import Welcome from '../components/user/Welcome.vue'
+import Rights from '../components/power/Rights.vue'
+import Roles from '../components/power/Roles.vue'
+import Goods from '../components/goods/Goods.vue'
+import Params from '../components/goods/Params.vue'
+import Categories from '../components/goods/Categories.vue'
 
 Vue.use(VueRouter)
 
@@ -20,14 +25,33 @@ const router = new VueRouter({
       path: '/home',
       component: Home,
       redirect: '/welcome',
-      children: [
-        {
+      children: [{
           path: '/welcome',
           component: Welcome
         },
         {
           path: '/users',
           component: User
+        },
+        {
+          path: '/rights',
+          component: Rights
+        },
+        {
+          path: '/roles',
+          component: Roles
+        },
+        {
+          path: '/goods',
+          component: Goods
+        },
+        {
+          path: '/params',
+          component: Params
+        },
+        {
+          path: '/categories',
+          component: Categories
         }
       ]
     }

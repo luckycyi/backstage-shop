@@ -1,5 +1,6 @@
 <template>
   <div class="block">
+    <!-- 面包屑 -->
     <el-breadcrumb separator="/">
       <el-breadcrumb-item :to="{ path: '/welcome' }">首页</el-breadcrumb-item>
       <el-breadcrumb-item :to="{ path: '/users' }"
@@ -36,7 +37,7 @@
 
       <!-- 表格渲染用户列表区域 -->
       <el-table :data="tableData" border stripe>
-        <el-table-column type="index"></el-table-column>
+        <el-table-column type="index" label="#"></el-table-column>
         <el-table-column prop="username" label="姓名"> </el-table-column>
         <el-table-column prop="email" label="邮箱"></el-table-column>
         <el-table-column prop="mobile" label="电话"></el-table-column>
@@ -74,6 +75,7 @@
                 type="warning"
                 size="mini"
                 icon="el-icon-setting"
+                @click="setRole(scope.row)"
               ></el-button>
             </el-tooltip>
           </template>
@@ -131,37 +133,70 @@
 
     <!-- 修改用户表单 -->
     <el-dialog
-      title="添加用户"
+      title="修改用户"
       :visible.sync="updataShow"
       width="50%"
       @close="updataUserClose"
       center
     >
       <el-form
-        :model="addFrom"
+        :model="editFrom"
         :rules="addRules"
         ref="updataForm"
         label-width="70px"
       >
         <el-form-item label="用户名" prop="username">
           <el-input
-            v-model="addFrom.username"
+            v-model="editFrom.username"
             :disabled="updataChange"
           ></el-input>
         </el-form-item>
         <el-form-item label="密码" prop="password">
-          <el-input v-model="addFrom.password"></el-input>
+          <el-input v-model="editFrom.password"></el-input>
         </el-form-item>
         <el-form-item label="邮箱" prop="email">
-          <el-input v-model="addFrom.email"></el-input>
+          <el-input v-model="editFrom.email"></el-input>
         </el-form-item>
         <el-form-item label="手机号" prop="mobile">
-          <el-input v-model="addFrom.mobile"></el-input>
+          <el-input v-model="editFrom.mobile"></el-input>
         </el-form-item>
       </el-form>
       <span slot="footer" class="dialog-footer">
         <el-button @click="updataShow = false">取 消</el-button>
         <el-button type="primary" @click="updataUser">确 定</el-button>
+      </span>
+    </el-dialog>
+
+    <!-- 角色权限分配 -->
+    <el-dialog
+      title="提示"
+      ref="setClearData"
+      :visible.sync="userDialogVisible"
+      width="50%"
+      @close="setClearData"
+    >
+      <el-form label-width="100px" :model="labelPosition">
+        <el-form-item label="当前用户">
+          <el-input v-model="labelPosition.username" disabled></el-input>
+        </el-form-item>
+        <el-form-item label="当前角色">
+          <el-input v-model="labelPosition.role_name" disabled></el-input>
+        </el-form-item>
+        <el-form-item label="分配新角色">
+          <el-select v-model="roleListId" placeholder="请选择">
+            <el-option
+              v-for="item in roleList"
+              :key="item.id"
+              :label="item.roleName"
+              :value="item.id"
+            >
+            </el-option>
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="userDialogVisible = false">取 消</el-button>
+        <el-button type="primary" @click="saveRoleInfo">确 定</el-button>
       </span>
     </el-dialog>
   </div>
@@ -217,6 +252,16 @@ export default {
         email: '',
         mobile: ''
       },
+      // 修改数据对象
+      editFrom: {},
+      // 权限弹窗显示隐藏
+      userDialogVisible: false,
+      // 权限列表数据
+      labelPosition: {},
+      // 获取所有角色对象
+      roleList: {},
+      // 权限角色选择id值
+      roleListId: '',
       // 表单验证规则
       addRules: {
         // 验证用户名是否合法
@@ -310,9 +355,8 @@ export default {
     // 监听添加列表关闭后清除提示警告
     addUserClose() {
       this.$refs.addForm.resetFields()
-      this.$refs.updataForm.resetFields()
     },
-    // 修改事件监听
+    // 关闭修改事件监听
     updataUserClose() {
       this.$refs.updataForm.resetFields()
     },
@@ -336,17 +380,20 @@ export default {
       if (res.meta.status !== 200) return this.$message.error(res.meta.msg)
       this.updataShow = true
       this.updataChange = true
-      this.addFrom = res.data
+      this.editFrom = res.data
     },
     // 提交修改用户数据
     updataUser() {
       this.$refs.updataForm.validate(async val => {
         if (!val) return this.$message.error('数据错误,请重新填写')
         // 发起数据修改提交命令
-        const { data: res } = await this.$http.put('users/' + this.addFrom.id, {
-          email: this.addFrom.email,
-          mobile: this.addFrom.mobile
-        })
+        const { data: res } = await this.$http.put(
+          'users/' + this.editFrom.id,
+          {
+            email: this.editFrom.email,
+            mobile: this.editFrom.mobile
+          }
+        )
         if (res.meta.status !== 200) return this.$message.error(res.meta.msg)
         // 关闭对话框
         this.updataShow = false
@@ -355,6 +402,33 @@ export default {
         // 提示修改成功
         this.$message.success('更新成功！')
       })
+    },
+    // 权限角色数据获取
+    async setRole(row) {
+      this.labelPosition = row
+      const { data: res } = await this.$http.get('roles')
+      if (res.meta.status !== 200) return this.$message.error('获取数据失败！')
+      this.roleList = res.data
+      this.userDialogVisible = true
+    },
+    // 更新角色数据
+    async saveRoleInfo() {
+      if (!this.roleListId) return this.$message.error('请选择要分配的对象')
+      const { data: res } = await this.$http.put(
+        `users/${this.labelPosition.id}/role`,
+        {
+          rid: this.roleListId
+        }
+      )
+      if (res.meta.status !== 200) return this.$message.error(res.meta.msg)
+      this.$message.success(res.meta.msg)
+      this.getTableData()
+      this.userDialogVisible = false
+    },
+    // 监听分配权限表单关闭后事件
+    setClearData() {
+      this.roleListId = ''
+      this.labelPosition = {}
     }
   }
 }
