@@ -129,7 +129,7 @@
 
     <!-- 图片预览 -->
     <el-dialog title="图片预览" :visible.sync="dialogVisible" width="50%">
-      <img :src="previewPath" alt="" class="preverImg" />
+      <img :src="previewPath" class="preverImg" />
     </el-dialog>
   </div>
 </template>
