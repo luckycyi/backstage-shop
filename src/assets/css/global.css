@@ -12,3 +12,28 @@ body {
   margin: 0;
   padding: 0;
 }
+
+.el-cascader-menu {
+  height: 300px;
+}
+
+.el-card {
+  margin-top: 15px;
+}
+
+.el-table {
+  margin-top: 15px;
+}
+
+.el-steps {
+  margin-top: 15px;
+  font-size: 12px;
+}
+
+.el-step__title {
+  font-size: 12px;
+}
+
+.ql-editor {
+  min-height: 300px;
+}

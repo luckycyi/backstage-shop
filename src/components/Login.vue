@@ -13,6 +13,7 @@
         ref="ruleFormLogin"
         :rules="rulesLogin"
         class="login-form"
+        @close="clearClose"
       >
         <el-form-item prop="username">
           <el-input

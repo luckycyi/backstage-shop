@@ -53,7 +53,7 @@
               <template slot="title">
                 <i class="el-icon-menu"></i>
                 <!-- 菜单列表名称 -->
-                <span>{{ item.authName }}</span>
+                <span>{{ subItem.authName }}</span>
               </template>
             </el-menu-item>
           </el-submenu>
