@@ -7,34 +7,16 @@
       </div>
 
       <!-- 登录组件 -->
-      <el-form
-        :model="loginForm"
-        label-width="0px"
-        ref="ruleFormLogin"
-        :rules="rulesLogin"
-        class="login-form"
-        @close="clearClose"
-      >
+      <el-form :model="loginForm" label-width="0px" ref="ruleFormLogin" :rules="rulesLogin" class="login-form">
         <el-form-item prop="username">
-          <el-input
-            prefix-icon="iconfont icon-user"
-            v-model="loginForm.username"
-            placeholder="请输入用户名"
-          ></el-input>
+          <el-input prefix-icon="iconfont icon-user" v-model="loginForm.username" placeholder="请输入用户名"></el-input>
         </el-form-item>
         <el-form-item prop="password">
-          <el-input
-            type="password"
-            prefix-icon="iconfont icon-3702mima"
-            v-model="loginForm.password"
-            placeholder="请输入密码"
-          ></el-input>
+          <el-input type="password" prefix-icon="iconfont icon-3702mima" v-model="loginForm.password" placeholder="请输入密码"></el-input>
         </el-form-item>
         <el-form-item class="btns">
           <el-button type="primary" size="mini" @click="login">登录</el-button>
-          <el-button type="info" size="mini" @click="resetLoginFrom"
-            >重置</el-button
-          >
+          <el-button type="info" size="mini" @click="resetLoginFrom">重置</el-button>
         </el-form-item>
       </el-form>
     </div>

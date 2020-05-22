@@ -21,18 +21,34 @@ import 'quill/dist/quill.bubble.css'
 
 // 引入axios跨域
 import axios from 'axios'
+
+// 全局优化vue
+// 导入进度条插件
+import NProgress from 'nprogress'
+// 导入进度条样式
+import 'nprogress/nprogress.css'
+
 // 配置请求根路径
 axios.defaults.baseURL = 'http://127.0.0.1:8888/api/private/v1/'
 Vue.prototype.$http = axios
 
-// // 添加一个请求拦截器
+// 添加一个请求拦截器
 axios.interceptors.request.use(function (config) {
+  // 当进入request拦截器，表示发送了请求，我们就开启进度条
+  NProgress.start()
   // Do something before request is sent
   config.headers.Authorization = window.sessionStorage.getItem('token')
   return config
 }, function (error) {
   // Do something with request error
   return Promise.reject(error)
+})
+
+// 在response拦截器中，隐藏进度条
+axios.interceptors.response.use(config => {
+  // 当进入response拦截器，表示请求已经结束，我们就结束进度条
+  NProgress.done()
+  return config
 })
 
 Vue.config.productionTip = false
